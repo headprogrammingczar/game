@@ -20,11 +20,11 @@ yield = ContT $ \f -> (idleAdd (f () >> return False) priorityDefaultIdle) >> re
 
 wait n = ContT $ \f -> (timeoutAdd (f () >> return False) n) >> return ()
 
-initRun = ContT $ \f -> postGUIAsync (f ())
+postGUI = ContT $ \f -> postGUIAsync (f ())
 
 -- theoretically threadsafe
 runCallback :: ContT () IO () -> IO ()
-runCallback action = runContT (initRun >> action) return
+runCallback action = runContT (postGUI >> action) return
 
 safeSpark :: IO a -> IO (IO a)
 safeSpark act = do
