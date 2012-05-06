@@ -49,6 +49,8 @@ Executable game
   
   -- Packages needed in order to build this package.
   Build-depends:       gtk, cairo, base, array, random, mtl
+
+  GHC-Options:         -threaded
   
   -- Modules not exported by this package.
   -- Other-modules:       
