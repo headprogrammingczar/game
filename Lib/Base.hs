@@ -10,10 +10,11 @@ newCanvas w h = do
   set img [imagePixmap := map]
   return (img, map)
 
-scrollArea :: WidgetClass w => w -> IO ScrolledWindow
-scrollArea inner = do
+scrollArea :: WidgetClass w => w -> Int -> Int -> IO ScrolledWindow
+scrollArea inner w h = do
   area <- scrolledWindowNew Nothing Nothing
   scrolledWindowAddWithViewport area inner
+  widgetSetSizeRequest area w h
   return area
 
 yield = ContT $ \f -> (idleAdd (f () >> return False) priorityDefaultIdle) >> return ()
