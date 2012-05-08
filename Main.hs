@@ -5,8 +5,8 @@ import Lib.Imports
 import Lib.Windows
 
 main = runGTK $ do
-  w <- mainWindow
-  w `after` deleteEvent $ tryEvent $ do
+  w <- liftIO mainWindow
+  liftIO $ w `after` deleteEvent $ tryEvent $ do
     liftIO mainQuit
-  widgetShowAll w
+  liftIO $ widgetShowAll w
 

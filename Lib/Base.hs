@@ -4,7 +4,7 @@ import Lib.Imports
 import System.IO.Unsafe (unsafeInterleaveIO)
 
 data GameState = Game TurnState TurnActions
-data TurnState = TurnState
+data TurnState = TurnState Int Int
 data TurnActions = TurnActions
 
 type Game a = ReaderT (IORef GameState) (ContT () IO) a
@@ -14,12 +14,16 @@ initialState = do
   ref <- newIORef emptyState
   return ref
 
-emptyState = Game TurnState TurnActions
+emptyState = Game emptyTurn emptyAction
+
+emptyTurn = TurnState 0 0
+emptyAction = TurnActions
 
 -- the all-singing and dancing GTK run function
 runGTK action = do
   unsafeInitGUIForThreadedRTS
-  action
+  ref <- initialState
+  runContT (runReaderT action ref) return
   mainGUI
 
 newCanvas :: Int -> Int -> IO (Image, Pixmap)
