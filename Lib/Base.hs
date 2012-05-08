@@ -3,6 +3,25 @@ module Lib.Base where
 import Lib.Imports
 import System.IO.Unsafe (unsafeInterleaveIO)
 
+data GameState = Game TurnState TurnActions
+data TurnState = TurnState
+data TurnActions = TurnActions
+
+type Game a = ReaderT (IORef GameState) (ContT () IO) a
+
+initialState :: IO (IORef GameState)
+initialState = do
+  ref <- newIORef emptyState
+  return ref
+
+emptyState = Game TurnState TurnActions
+
+-- the all-singing and dancing GTK run function
+runGTK action = do
+  unsafeInitGUIForThreadedRTS
+  action
+  mainGUI
+
 newCanvas :: Int -> Int -> IO (Image, Pixmap)
 newCanvas w h = do
   map <- pixmapNew (Nothing :: Maybe Drawable) w h (Just 24)
@@ -17,29 +36,16 @@ scrollArea inner w h = do
   widgetSetSizeRequest area w h
   return area
 
-yield = ContT $ \f -> (idleAdd (f () >> return False) priorityDefaultIdle) >> return ()
+-- give gtk a moment to do its own stuff, then continue
+yield :: Game ()
+yield = do
+  callCC $ \k -> do
+    next <- runCallback $ k ()
+    liftIO $ idleAdd (next >> return False) priorityDefaultIdle
+    return ()
 
-wait n = ContT $ \f -> (timeoutAdd (f () >> return False) n) >> return ()
-
-postGUI = ContT $ \f -> postGUIAsync (f ())
-
--- theoretically threadsafe
-runCallback :: ContT () IO () -> IO ()
-runCallback action = runContT (postGUI >> action) return
-
-safeSpark :: IO a -> IO (IO a)
-safeSpark act = do
-  var <- newEmptyMVar
-  forkIO $ do
-    val <- act
-    putMVar var val
-  return (takeMVar var)
-
-spark :: IO a -> IO a
-spark act = do
-  var <- newEmptyMVar
-  forkIO $ do
-    val <- act
-    putMVar var val
-  unsafeInterleaveIO (takeMVar var)
+runCallback :: Game () -> Game (IO ())
+runCallback action = do
+  r <- ask
+  return (runContT (runReaderT action r) return)
 
