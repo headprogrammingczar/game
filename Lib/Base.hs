@@ -7,7 +7,7 @@ data GameState = Game TurnState TurnActions
 data TurnState = TurnState Int Int
 data TurnActions = TurnActions
 
-type Game a = ReaderT (IORef GameState) (ContT () IO) a
+type Game a = ContT () (ReaderT (IORef GameState) IO) a
 
 initialState :: IO (IORef GameState)
 initialState = do
@@ -23,7 +23,7 @@ emptyAction = TurnActions
 runGTK action = do
   unsafeInitGUIForThreadedRTS
   ref <- initialState
-  runContT (runReaderT action ref) return
+  runReaderT (runContT action return) ref
   mainGUI
 
 newCanvas :: Int -> Int -> IO (Image, Pixmap)
@@ -33,23 +33,21 @@ newCanvas w h = do
   set img [imagePixmap := map]
   return (img, map)
 
-scrollArea :: WidgetClass w => w -> Int -> Int -> IO ScrolledWindow
-scrollArea inner w h = do
+scrollArea :: WidgetClass w => w -> IO ScrolledWindow
+scrollArea inner = do
   area <- scrolledWindowNew Nothing Nothing
   scrolledWindowAddWithViewport area inner
-  widgetSetSizeRequest area w h
   return area
 
 -- give gtk a moment to do its own stuff, then continue
 yield :: Game ()
-yield = do
-  callCC $ \k -> do
-    next <- runCallback $ k ()
-    liftIO $ idleAdd (next >> return False) priorityDefaultIdle
-    return ()
+yield = ContT $ \k -> ReaderT $ \ref -> idleAdd (runReaderT (k ()) ref >> return False) priorityDefaultIdle >> return ()
+
+delay :: Int -> Game ()
+delay n = ContT $ \k -> ReaderT $ \ref -> timeoutAdd (runReaderT (k ()) ref >> return False) n >> return ()
 
 runCallback :: Game () -> Game (IO ())
 runCallback action = do
   r <- ask
-  return (runContT (runReaderT action r) return)
+  return $ runReaderT (runContT action return) r
 

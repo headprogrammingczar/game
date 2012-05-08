@@ -6,7 +6,7 @@ import Lib.Base
 mainWindow = do
   window <- windowNew
   (img, canvas) <- newCanvas 600 400
-  area <- scrollArea img 300 200
+  area <- scrollArea img
   containerAdd window area
   return window
 
