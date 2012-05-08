@@ -1,4 +1,5 @@
 dist
+game-dist
 cabal-dev
 *.o
 *.hi
