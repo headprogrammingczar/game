@@ -3,26 +3,40 @@ module Lib.Base where
 import Lib.Imports
 import System.IO.Unsafe (unsafeInterleaveIO)
 
+-- everything
 data GameState = Game TurnState TurnActions
-data TurnState = TurnState Int Int
+
+-- the state of the game at this turn
+data TurnState = TurnState Grid
+
+-- what is going to happen between turns
 data TurnActions = TurnActions
+
+-- the game map is a 2D array of squares
+data Square = Void
+type Grid = IOArray (Int, Int) Square
 
 type Game a = ContT () (ReaderT (IORef GameState) IO) a
 
-initialState :: IO (IORef GameState)
+initialState :: IO GameState
 initialState = do
-  ref <- newIORef emptyState
-  return ref
+  turn <- initialTurn
+  return $ Game turn emptyAction
 
-emptyState = Game emptyTurn emptyAction
+initialTurn :: IO TurnState
+initialTurn = do
+  map <- emptyMap
+  return $ TurnState map
 
-emptyTurn = TurnState 0 0
+-- the "do nothing" action
 emptyAction = TurnActions
+
+emptyMap = newArray ((0, 0), (0, 0)) Void
 
 -- the all-singing and dancing GTK run function
 runGTK action = do
   unsafeInitGUIForThreadedRTS
-  ref <- initialState
+  ref <- newIORef =<< initialState
   runReaderT (runContT action return) ref
   mainGUI
 

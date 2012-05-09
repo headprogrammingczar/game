@@ -9,7 +9,6 @@ main = runGTK $ do
   liftIO $ w `after` deleteEvent $ tryEvent $ do
     liftIO mainQuit
   liftIO $ widgetShowAll w
-  liftIO $ windowMaximize w
   forever gameStep
 
 gameStep = do

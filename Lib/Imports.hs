@@ -6,6 +6,7 @@ module Lib.Imports
 , module Control.Monad.Cont
 , module Control.Concurrent
 , module Data.IORef
+, module Data.Array.IO
 ) where
 
 import Graphics.UI.Gtk hiding (FillRule, FontFace)
@@ -15,4 +16,5 @@ import Control.Monad.Reader
 import Control.Monad.Cont
 import Control.Concurrent hiding (yield)
 import Data.IORef
+import Data.Array.IO
 
