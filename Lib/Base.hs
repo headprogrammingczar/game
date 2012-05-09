@@ -4,10 +4,13 @@ import Lib.Imports
 import System.IO.Unsafe (unsafeInterleaveIO)
 
 -- everything
-data GameState = Game TurnState TurnActions
+data GameState = Game {turnState :: TurnState, turnActions :: TurnActions, guiState :: GUIState}
+
+-- important GUI stuff
+data GUIState = GUIState {mainMapArea :: DrawingArea}
 
 -- the state of the game at this turn
-data TurnState = TurnState Grid
+data TurnState = TurnState {mainMapGrid :: Grid}
 
 -- what is going to happen between turns
 data TurnActions = TurnActions
@@ -18,10 +21,20 @@ type Grid = IOArray (Int, Int) Square
 
 type Game a = ContT () (ReaderT (IORef GameState) IO) a
 
+askRef f = do
+  ref <- ask
+  gs <- liftIO $ readIORef ref
+  return $ f gs
+
 initialState :: IO GameState
 initialState = do
+  gui <- initialGUI
   turn <- initialTurn
-  return $ Game turn emptyAction
+  return $ Game turn emptyAction gui
+
+initialGUI = do
+  area <- drawingAreaNew
+  return $ GUIState area
 
 initialTurn :: IO TurnState
 initialTurn = do
@@ -39,13 +52,6 @@ runGTK action = do
   ref <- newIORef =<< initialState
   runReaderT (runContT action return) ref
   mainGUI
-
-newCanvas :: Int -> Int -> IO (Image, Pixmap)
-newCanvas w h = do
-  map <- pixmapNew (Nothing :: Maybe Drawable) w h (Just 24)
-  img <- imageNew
-  set img [imagePixmap := map]
-  return (img, map)
 
 scrollArea :: WidgetClass w => w -> IO ScrolledWindow
 scrollArea inner = do

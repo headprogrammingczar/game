@@ -3,10 +3,10 @@ module Lib.Windows where
 import Lib.Imports
 import Lib.Base
 
+mainWindow :: Game Window
 mainWindow = do
-  window <- windowNew
-  (img, canvas) <- newCanvas 600 400
-  area <- scrollArea img
-  containerAdd window area
+  window <- liftIO $ windowNew
+  area <- askRef (mainMapArea . guiState)
+  liftIO $ containerAdd window area
   return window
 
