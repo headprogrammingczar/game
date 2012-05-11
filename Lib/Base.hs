@@ -7,7 +7,7 @@ import System.IO.Unsafe (unsafeInterleaveIO)
 data GameState = Game {turnState :: TurnState, turnActions :: TurnActions, guiState :: GUIState}
 
 -- important GUI stuff
-data GUIState = GUIState {mainMapArea :: DrawingArea}
+data GUIState = GUIState {mainMapArea :: DrawingArea, viewportCenter :: (Int, Int)}
 
 -- the state of the game at this turn
 data TurnState = TurnState {mainMapGrid :: Grid}
@@ -16,7 +16,7 @@ data TurnState = TurnState {mainMapGrid :: Grid}
 data TurnActions = TurnActions
 
 -- the game map is a 2D array of squares
-data Square = Void
+data Square = Void | Filled
 type Grid = IOArray (Int, Int) Square
 
 type Game a = ContT () (ReaderT (IORef GameState) IO) a
@@ -34,7 +34,7 @@ initialState = do
 
 initialGUI = do
   area <- drawingAreaNew
-  return $ GUIState area
+  return $ GUIState area (0, 0)
 
 initialTurn :: IO TurnState
 initialTurn = do
@@ -44,7 +44,11 @@ initialTurn = do
 -- the "do nothing" action
 emptyAction = TurnActions
 
+emptyMap :: IO Grid
 emptyMap = newArray ((0, 0), (0, 0)) Void
+
+initialMap :: IO Grid
+initialMap = newArray ((0, 0), (5, 5)) Filled
 
 -- the all-singing and dancing GTK run function
 runGTK action = do
