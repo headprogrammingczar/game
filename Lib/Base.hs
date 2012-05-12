@@ -38,7 +38,7 @@ initialGUI = do
 
 initialTurn :: IO TurnState
 initialTurn = do
-  map <- emptyMap
+  map <- initialMap
   return $ TurnState map
 
 -- the "do nothing" action
