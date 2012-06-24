@@ -26,11 +26,11 @@ homepage = ok . toResponse . H.html . H.body . p $ "boo!"
 
 startPages = do
   msum [ mzero
-       , dir "1" $ startOne
-       , nullDir >> startOne
+       , dir "1" $ serveFile autoContentType "html/start/1.html"
+       , nullDir >> serveFile autoContentType "html/start/1.html"
        ]
 
-startOne = ok . toResponse . H.html . H.body . p $ "start page"
+autoContentType = guessContentTypeM mimeTypes
 
 openConfigPage = forkIO $ do
   case System.Info.os of
