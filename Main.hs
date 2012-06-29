@@ -1,13 +1,28 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP, PatternGuards #-}
 
 #include "Lib/Imports.hs"
 import Lib.State
 import qualified System.Info
 import System.Process (rawSystem)
 import Control.Concurrent
+import System.Console.GetOpt
+import System.Environment
+
+data Option = NoStartPage
+
+data Options = Options {startPage :: Bool}
+
+defaultOptions = Options {startPage = True}
+
+modifyOptions opts NoStartPage = opts {startPage = False}
+
+options = [Option [] ["no-start-page"] (NoArg NoStartPage) "Disable start page on startup"]
 
 main = do
-  openConfigPage
+  args <- getArgs
+  let (optlist, extra, errs) = getOpt RequireOrder options args
+  let userOptions = foldl modifyOptions defaultOptions optlist
+  when (startPage userOptions) $ openConfigPage >> return ()
   bracket (openLocalState initialGameState)
           (createCheckpointAndClose)
           (\acid -> simpleHTTP conf (game acid))
@@ -26,9 +41,12 @@ homepage = ok . toResponse . H.html . H.body . p $ "boo!"
 
 startPages = do
   msum [ mzero
-       , dir "1" $ serveFile autoContentType "html/start/1.html"
+       , uriRest startPageParse
        , nullDir >> serveFile autoContentType "html/start/1.html"
        ]
+
+startPageParse ('/':n) | [(page, "")] <- reads n = serveFile autoContentType $ "html/start/"++ show (page :: Int) ++".html"
+startPageParse s = liftIO (putStrLn s) >> mzero
 
 autoContentType = guessContentTypeM mimeTypes
 

@@ -1,0 +1,4 @@
+#!/usr/bin/tail --lines=+3
+
+### Install script
+# Copy-paste output into another terminal to perform the installation
