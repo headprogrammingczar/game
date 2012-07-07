@@ -8,6 +8,7 @@ header :: String -> Html -> Html
 header title body = H.docTypeHtml $ do
   H.head $ do
     H.title (H.toMarkup title)
+    H.link H.! A.rel "stylesheet" H.! A.href "/css/styles.css"
   H.body $ do
     body
 
@@ -22,7 +23,9 @@ drawMap (Grid arr) = H.table H.! A.class_ "grid" $ do
 drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
   gridLoop start end arr H.tr $ \x y -> do
     let sq = arr ! (x, y)
-    H.td $ H.img H.! A.src (squareImage sq)
+    let bg = mconcat ["background: url(", squareImage sq, ")"]
+    H.td H.! A.style bg $ do
+      ""
 
 squareImage Void = "/img/black.png"
 squareImage White = "/img/white.png"

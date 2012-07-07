@@ -8,6 +8,7 @@ import Control.Exception (bracket)
 import Data.Maybe
 import Data.Text (Text, unpack)
 import Data.Data (Data, Typeable)
+import Data.Monoid
 
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
