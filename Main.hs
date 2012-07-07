@@ -2,6 +2,8 @@
 
 #include "Lib/Imports.hs"
 import Lib.State
+import Lib.Blaze
+
 import qualified System.Info
 import System.Process (rawSystem)
 import Control.Concurrent
@@ -33,11 +35,18 @@ conf = nullConf {port = portNum}
 game acid = do
   decodeBody (defaultBodyPolicy "/tmp/" 0 1000 1000)
   msum [ mzero
+       , dir "css" $ serveDirectory DisableBrowsing [] "html/css"
+       , dir "js" $ serveDirectory DisableBrowsing [] "html/js"
+       , dir "img" $ serveDirectory DisableBrowsing [] "html/img"
+       , dir "a-img" $ serveDirectory DisableBrowsing [] "html/a-img"
        , dir "start" $ startPages
-       , nullDir >> homepage
+       , nullDir >> homepage acid
        ]
 
-homepage = ok . toResponse . H.html . H.body . p $ "boo!"
+homepage acid = do
+  grid <- query' acid PeekGrid
+  ok . toResponse . header "Game Map" $ do
+    drawMap grid
 
 startPages = do
   msum [ mzero

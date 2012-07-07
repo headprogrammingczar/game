@@ -9,9 +9,13 @@ import Data.Maybe
 import Data.Text (Text, unpack)
 import Data.Data (Data, Typeable)
 
+import Data.IntMap (IntMap)
+import qualified Data.IntMap as IM
+import Data.Array
+
 import Happstack.Server
 
-import Text.Blaze.Html5 (Html, (!), a, form, input, p, toHtml, label)
+import Text.Blaze.Html5 (Html, a, form, input, p, toHtml, label)
 import Text.Blaze.Html5.Attributes (action, enctype, href, name, size, type_, value)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A

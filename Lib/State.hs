@@ -3,33 +3,41 @@ module Lib.State where
 
 #include "Imports.hs"
 
-data GameState = GameState {count :: Int} deriving (Eq, Ord, Read, Show, Data, Typeable)
+data GameState = GameState {grid :: Grid, players :: Players, turnNumber :: Int} deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+data Player = Player {playerTurn :: PlayerTurn} deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+data Players = Players {player1, player2, player3, player4 :: Maybe Player} deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+data PlayerTurn = PlayerTurn deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+data Grid = Grid (Array (Int, Int) Square) deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+data Square = Void | White deriving (Eq, Ord, Read, Show, Data, Typeable)
 
 $(deriveSafeCopy 0 'base ''GameState)
+$(deriveSafeCopy 0 'base ''Player)
+$(deriveSafeCopy 0 'base ''Players)
+$(deriveSafeCopy 0 'base ''PlayerTurn)
+$(deriveSafeCopy 0 'base ''Grid)
+$(deriveSafeCopy 0 'base ''Square)
 
 initialGameState :: GameState
-initialGameState = GameState 0
+initialGameState = GameState {grid = voidGrid, players = noPlayers, turnNumber = 0}
 
-incCountBy :: Int -> Update GameState Int
-incCountBy n = do
-  c@GameState{..} <- get
-  let newCount = count + n
-  put $ c {count = newCount}
-  return newCount
+voidGrid = Grid $ listArray ((0, 0), (299, 199)) (repeat Void)
 
-peekCount :: Query GameState Int
-peekCount = count <$> ask
+noPlayers = Players Nothing Nothing Nothing Nothing
 
-$(makeAcidic ''GameState ['incCountBy, 'peekCount])
+runTurn :: Update GameState ()
+runTurn = do
+  state <- get
+  let newTurnNumber = 1 + turnNumber state
+  put state {turnNumber = newTurnNumber}
+  return ()
 
-handlers :: AcidState GameState -> ServerPart Response
-handlers acid = msum
-  [ dir "peek" $ do
-      c <- query' acid PeekCount
-      ok $ toResponse $ "peeked at the count and saw: " ++ show c
-  , do
-    nullDir
-    c <- update' acid (IncCountBy 1)
-    ok $ toResponse $ "New count is: " ++ show c
-  ]
+peekGrid :: Query GameState Grid
+peekGrid = grid <$> ask
+
+$(makeAcidic ''GameState ['runTurn, 'peekGrid])
 

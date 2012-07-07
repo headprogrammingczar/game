@@ -2,3 +2,6 @@
 
 ### Install script
 # Copy-paste output into another terminal to perform the installation
+ghc --make Main.hs
+perl sys/static.pl
+
