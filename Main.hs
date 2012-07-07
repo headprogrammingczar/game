@@ -46,7 +46,7 @@ game acid = do
 homepage acid = do
   grid <- query' acid PeekGrid
   ok . toResponse . header "Game Map" $ do
-    drawMap grid
+    drawMapBounds (0,0) (50,50) grid
 
 startPages = do
   msum [ mzero
