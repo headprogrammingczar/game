@@ -32,6 +32,7 @@ main = do
 
 startServer :: AcidState GameState -> IO ()
 startServer acid = do
+  generateInitialMap acid
   simpleHTTP conf (game acid)
 
 portNum = 12345

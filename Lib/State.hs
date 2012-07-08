@@ -26,9 +26,8 @@ $(deriveSafeCopy 0 'base ''Square)
 
 initialGameState :: GameState
 initialGameState = NoState 0
--- initialGameState = GameState {grid = voidGrid, players = noPlayers, turnNumber = 0}
 
-voidGrid = Grid $ listArray ((0, 0), (299, 199)) (repeat Void)
+readyState grid = GameState {grid = grid, players = noPlayers, turnNumber = 0}
 
 noPlayers = Players Nothing Nothing Nothing Nothing
 
@@ -42,6 +41,11 @@ runTurn = do
 peekGrid :: Query GameState Grid
 peekGrid = grid <$> ask
 
+setGrid :: Grid -> Update GameState ()
+setGrid gr = do
+  state <- get
+  put (state {grid = gr})
+
 isReady :: Query GameState Bool
 isReady = do
   st <- ask
@@ -49,11 +53,21 @@ isReady = do
     NoState {} -> return False
     GameState {} -> return True
 
+setReady :: Grid -> Update GameState ()
+setReady grid = do
+  put (readyState grid)
+
 clearReady :: Update GameState ()
 clearReady = do
   ready <- runQuery isReady
   when (not ready) $ do
     put (NoState 0)
 
-$(makeAcidic ''GameState ['runTurn, 'peekGrid, 'isReady, 'clearReady])
+incReady :: Double -> Update GameState Double
+incReady inc = do
+  (NoState d) <- get
+  put (NoState (d + inc))
+  return (d + inc)
+
+$(makeAcidic ''GameState ['runTurn, 'peekGrid, 'setGrid, 'isReady, 'setReady, 'clearReady, 'incReady])
 
