@@ -23,9 +23,8 @@ drawMap (Grid arr) = H.table H.! A.class_ "grid" $ do
 drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
   gridLoop start end arr H.tr $ \x y -> do
     let sq = arr ! (x, y)
-    let bg = mconcat ["background: url(", squareImage sq, ")"]
-    H.td H.! A.style bg $ do
-      ""
+    H.td $ do
+      H.img H.! A.src (squareImage sq) H.! A.class_ "gridSquare"
 
 squareImage Void = "/img/black.png"
 squareImage White = "/img/white.png"
