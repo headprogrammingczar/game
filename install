@@ -2,6 +2,8 @@
 
 ### Install script
 # Copy-paste output into another terminal to perform the installation
+
+# If you are feeling adventurous, run `sh install` to run the whole install process at once
 ghc --make -threaded Main.hs
 perl sys/static.pl
 

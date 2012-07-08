@@ -21,7 +21,7 @@ import Text.Blaze.Html5.Attributes (action, enctype, href, name, size, type_, va
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
-import Data.Acid (AcidState, Query, Update, makeAcidic, openLocalState)
+import Data.Acid (AcidState, Query, Update, makeAcidic, openLocalState, runQuery)
 import Data.Acid.Advanced (query', update')
 import Data.Acid.Local (createCheckpointAndClose)
 import Data.SafeCopy (base, deriveSafeCopy)

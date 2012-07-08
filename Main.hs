@@ -3,6 +3,7 @@
 #include "Lib/Imports.hs"
 import Lib.State
 import Lib.Blaze
+import Lib.Grid
 
 import qualified System.Info
 import System.Process (rawSystem)
@@ -27,7 +28,11 @@ main = do
   when (startPage userOptions) $ openConfigPage >> return ()
   bracket (openLocalState initialGameState)
           (createCheckpointAndClose)
-          (\acid -> simpleHTTP conf (game acid))
+          (startServer)
+
+startServer :: AcidState GameState -> IO ()
+startServer acid = do
+  simpleHTTP conf (game acid)
 
 portNum = 12345
 conf = nullConf {port = portNum}
@@ -35,13 +40,20 @@ conf = nullConf {port = portNum}
 game acid = do
   decodeBody (defaultBodyPolicy "/tmp/" 0 1000 1000)
   msum [ mzero
+       , dir "start" $ startPages
        , dir "css" $ serveDirectory DisableBrowsing [] "html/css"
        , dir "js" $ serveDirectory DisableBrowsing [] "html/js"
        , dir "img" $ serveDirectory DisableBrowsing [] "html/img"
        , dir "a-img" $ serveDirectory DisableBrowsing [] "html/a-img"
-       , dir "start" $ startPages
+       , notReady acid
        , nullDir >> homepage acid
        ]
+
+notReady acid = do
+  ready <- query' acid IsReady
+  guard (not ready) -- if not ready, trigger this and block access to other pages
+  ok . toResponse . header "Not Ready" $ do
+    p ""
 
 homepage acid = do
   grid <- query' acid PeekGrid

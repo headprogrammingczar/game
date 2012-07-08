@@ -3,7 +3,9 @@ module Lib.State where
 
 #include "Imports.hs"
 
-data GameState = GameState {grid :: Grid, players :: Players, turnNumber :: Int} deriving (Eq, Ord, Read, Show, Data, Typeable)
+-- Either not ready (plus progress value)
+-- Or the game state
+data GameState = NoState Double | GameState {grid :: Grid, players :: Players, turnNumber :: Int} deriving (Eq, Ord, Read, Show, Data, Typeable)
 
 data Player = Player {playerTurn :: PlayerTurn} deriving (Eq, Ord, Read, Show, Data, Typeable)
 
@@ -23,7 +25,8 @@ $(deriveSafeCopy 0 'base ''Grid)
 $(deriveSafeCopy 0 'base ''Square)
 
 initialGameState :: GameState
-initialGameState = GameState {grid = voidGrid, players = noPlayers, turnNumber = 0}
+initialGameState = NoState 0
+-- initialGameState = GameState {grid = voidGrid, players = noPlayers, turnNumber = 0}
 
 voidGrid = Grid $ listArray ((0, 0), (299, 199)) (repeat Void)
 
@@ -39,5 +42,18 @@ runTurn = do
 peekGrid :: Query GameState Grid
 peekGrid = grid <$> ask
 
-$(makeAcidic ''GameState ['runTurn, 'peekGrid])
+isReady :: Query GameState Bool
+isReady = do
+  st <- ask
+  case st of
+    NoState {} -> return False
+    GameState {} -> return True
+
+clearReady :: Update GameState ()
+clearReady = do
+  ready <- runQuery isReady
+  when (not ready) $ do
+    put (NoState 0)
+
+$(makeAcidic ''GameState ['runTurn, 'peekGrid, 'isReady, 'clearReady])
 
