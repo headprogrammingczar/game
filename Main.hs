@@ -11,32 +11,34 @@ import Control.Concurrent
 import System.Console.GetOpt
 import System.Environment
 
-data Option = NoStartPage
+data Option = NoStartPage | PortNum Int
 
-data Options = Options {startPage :: Bool}
+data Options = Options {startPage :: Bool, portNum :: Int}
 
-defaultOptions = Options {startPage = True}
+defaultOptions = Options {startPage = True, portNum = 12345}
 
 modifyOptions opts NoStartPage = opts {startPage = False}
+modifyOptions opts (PortNum p) = opts {portNum = p}
 
-options = [Option [] ["no-start-page"] (NoArg NoStartPage) "Disable start page on startup"]
+options = [Option [] ["no-start-page"] (NoArg NoStartPage) "Disable start page on startup",
+           Option ['p'] ["port"] (ReqArg (PortNum . read) "Port Number") "Set port number"]
 
 main = do
   args <- getArgs
   let (optlist, extra, errs) = getOpt RequireOrder options args
   let userOptions = foldl modifyOptions defaultOptions optlist
   when (startPage userOptions) $ openConfigPage >> return ()
+  let p = portNum userOptions
   bracket (openLocalState initialGameState)
           (createCheckpointAndClose)
-          (startServer)
+          (startServer p)
 
-startServer :: AcidState GameState -> IO ()
-startServer acid = do
+startServer :: Int -> AcidState GameState -> IO ()
+startServer p acid = do
   generateInitialMap acid
-  simpleHTTP conf (game acid)
+  simpleHTTP (conf {port = p}) (game acid)
 
-portNum = 12345
-conf = nullConf {port = portNum}
+conf = nullConf
 
 game acid = do
   decodeBody (defaultBodyPolicy "/tmp/" 0 1000 1000)
@@ -59,7 +61,7 @@ notReady acid = do
 homepage acid = do
   grid <- query' acid PeekGrid
   ok . toResponse . header "Game Map" $ do
-    drawMapBounds (0,0) (50,50) grid
+    drawMap grid
 
 startPages = do
   msum [ mzero

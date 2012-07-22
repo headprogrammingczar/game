@@ -16,9 +16,7 @@ drawMap :: Grid -> Html
 drawMap (Grid arr) = H.table H.! A.class_ "grid" $ do
   let start = fst . bounds $ arr
       end = snd . bounds $ arr
-  gridLoop start end arr H.tr $ \x y -> do
-    let sq = arr ! (x, y)
-    H.td $ H.img H.! A.src (squareImage sq)
+  drawMapBounds start end (Grid arr)
 
 drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
   gridLoop start end arr H.tr $ \x y -> do
@@ -26,12 +24,13 @@ drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
     H.td $ do
       H.img H.! A.src (squareImage sq) H.! A.class_ "gridSquare"
 
-squareImage Void = "/img/black.png"
-squareImage White = "/img/white.png"
+squareImage Tilde = "/img/black.png"
+squareImage Void = "/img/water.png"
+squareImage White = "/img/clear.png"
 
 gridLoop (x0, y0) (xn, yn) arr row col = do
-  forM_ [x0 .. xn - 1] $ \x -> do
+  forM_ [y0 .. yn - 1] $ \y -> do
     row $ do
-      forM_ [y0 .. yn - 1] $ \y -> do
+      forM_ [x0 .. xn - 1] $ \x -> do
         col x y
 
