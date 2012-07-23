@@ -15,7 +15,7 @@ data PlayerTurn = PlayerTurn deriving (Eq, Ord, Read, Show, Data, Typeable)
 
 data Grid = Grid (Array (Int, Int) Square) deriving (Eq, Ord, Read, Show, Data, Typeable)
 
-data Square = Void | White | Tilde deriving (Eq, Ord, Read, Show, Data, Typeable)
+data Square = Black | Void | White | Tilde deriving (Eq, Ord, Read, Show, Data, Typeable)
 
 $(deriveSafeCopy 0 'base ''GameState)
 $(deriveSafeCopy 0 'base ''Player)

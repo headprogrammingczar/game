@@ -24,7 +24,8 @@ drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
     H.td $ do
       H.img H.! A.src (squareImage sq) H.! A.class_ "gridSquare"
 
-squareImage Tilde = "/img/black.png"
+squareImage Black = "/img/black.png"
+squareImage Tilde = "/img/gray.png"
 squareImage Void = "/img/water.png"
 squareImage White = "/img/clear.png"
 

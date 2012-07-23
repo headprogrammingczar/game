@@ -38,7 +38,8 @@ newGrid = do
 generate (low, high) f = listArray (low, high) (map f (range (low, high)))
 
 level :: Int -> Int -> [Ball] -> Perlin -> Square
-level x y balls noise | weight > 10 = Tilde
+level x y balls noise | weight > 10 = Black
+                      | weight > 1 = Tilde
                       | weight > 0.1 = White
                       | otherwise = Void
   where
