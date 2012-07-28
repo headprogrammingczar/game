@@ -13,25 +13,28 @@ header title body = H.docTypeHtml $ do
     body
 
 drawMap :: Grid -> Html
-drawMap (Grid arr) = H.table H.! A.class_ "grid" $ do
+drawMap (Grid arr) = do
   let start = fst . bounds $ arr
       end = snd . bounds $ arr
   drawMapBounds start end (Grid arr)
 
-drawMapBounds start end (Grid arr) = H.table H.! A.class_ "grid" $ do
-  gridLoop start end arr H.tr $ \x y -> do
+drawMapBounds start end (Grid arr) = H.div H.! A.class_ "grid" $ do
+  gridLoop start end arr $ \x y -> do
     let sq = arr ! (x, y)
-    H.td $ do
-      H.img H.! A.src (squareImage sq) H.! A.class_ "gridSquare"
+    case squareImage sq of
+      Nothing -> return ()
+      Just img -> do
+        H.img H.! A.src img H.! A.class_ "gridSquare" H.! A.style (coords x y)
 
-squareImage Black = "/img/black.png"
-squareImage Tilde = "/img/gray.png"
-squareImage Void = "/img/water.png"
-squareImage White = "/img/clear.png"
+coords x y = H.toValue $ "top: "++ show (y * 10) ++"px; left: "++ show (x * 10) ++"px;"
 
-gridLoop (x0, y0) (xn, yn) arr row col = do
+squareImage Black = Nothing
+squareImage Tilde = Nothing
+squareImage Void = Just "/img/water.png"
+squareImage White = Nothing
+
+gridLoop (x0, y0) (xn, yn) arr elem = do
   forM_ [y0 .. yn - 1] $ \y -> do
-    row $ do
-      forM_ [x0 .. xn - 1] $ \x -> do
-        col x y
+    forM_ [x0 .. xn - 1] $ \x -> do
+      elem x y
 

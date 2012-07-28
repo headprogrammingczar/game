@@ -27,8 +27,8 @@ main = do
   args <- getArgs
   let (optlist, extra, errs) = getOpt RequireOrder options args
   let userOptions = foldl modifyOptions defaultOptions optlist
-  when (startPage userOptions) $ openConfigPage >> return ()
   let p = portNum userOptions
+  when (startPage userOptions) $ openConfigPage p >> return ()
   bracket (openLocalState initialGameState)
           (createCheckpointAndClose)
           (startServer p)
@@ -74,11 +74,11 @@ startPageParse s = liftIO (putStrLn s) >> mzero
 
 autoContentType = guessContentTypeM mimeTypes
 
-openConfigPage = forkIO $ do
+openConfigPage port = forkIO $ do
   case System.Info.os of
     "mingw32" -> do
-      rawSystem "start" ["http://localhost:"++ show portNum ++"/start/1"]
+      rawSystem "start" ["http://localhost:"++ show port ++"/start/1"]
     "linux" -> do
-      rawSystem "xdg-open" ["http://localhost:"++ show portNum ++"/start/1"]
+      rawSystem "xdg-open" ["http://localhost:"++ show port ++"/start/1"]
   return ()
 

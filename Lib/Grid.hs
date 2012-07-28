@@ -15,13 +15,11 @@ gh = 99
 generateInitialMap acid = do
   ready <- query' acid IsReady
   -- when (not ready) $ do
-  forkIO . forever $ do
-    forkIO $ do
-      -- update' acid ClearReady
-      gr <- newGrid
-      update' acid (SetReady gr)
-    threadDelay 20000000
-    return ()
+  forkIO $ do
+    -- update' acid ClearReady
+    gr <- newGrid
+    update' acid (SetReady gr)
+  return ()
 
 newGrid :: IO Grid
 newGrid = do
